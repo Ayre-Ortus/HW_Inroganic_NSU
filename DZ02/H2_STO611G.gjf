@@ -1,0 +1,11 @@
+%nproc=2
+%mem=2GB
+%Chk=H2_611G.chk
+#HF 6-311G
+
+My Title: H2_STO611G
+
+0 1
+H 0.0 0.0 0.0
+H 0.0 0.0 0.75
+
