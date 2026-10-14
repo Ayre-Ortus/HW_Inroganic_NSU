@@ -1,0 +1,38 @@
+import time
+from pyscf import gto, scf, cc
+
+basis = 'def2-tzvp'
+
+mol_CH4 = gto.M(atom=f'''
+    C     -0.000012   -0.000009   -0.000010
+    H      0.205209    0.824391   -0.678903
+    H      0.334674   -0.931844   -0.449809
+    H     -1.069030   -0.053721    0.192198
+    H      0.529058    0.161083    0.936324
+    ''', basis=basis, verbose=0)
+
+mol_C = gto.M(atom='C 0 0 0', basis=basis, spin=2, verbose=0)
+mol_H = gto.M(atom='H 0 0 0', basis=basis, spin=1, verbose=0)  
+
+def run(label, method):
+    print(f" {method} / {basis}")
+    res = {}
+    for name, mol, spinref in [('CH4', mol_CH4, 'RHF'),
+                               ('C',   mol_C,   'UHF'),
+                               ('H',   mol_H,   'UHF')]:
+        t0 = time.time()
+        mf = scf.RHF(mol).run() if spinref == 'RHF' else scf.UHF(mol).run()
+        if method == 'HF':
+            E = mf.e_tot
+        else:  # CCSD 
+            E = cc.CCSD(mf).run().e_tot
+        dt = time.time() - t0
+        res[name] = E
+        print(f"  E({name:>3}) = {E: .10f} Eh   время = {dt:8.2f} c")
+    E_form = res['CH4'] - res['C'] - 4*res['H']
+    print(f"  E_образования({method}) = {E_form: .10f} Eh = {E_form*27.2114: .4f} эВ")
+    print()
+    return E_form
+
+E_hf   = run('HF',   'HF')
+E_ccsd = run('CH4',  'CCSD')
